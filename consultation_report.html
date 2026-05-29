@@ -187,13 +187,8 @@ body{background:var(--dark);color:var(--tx);font-family:'Noto Sans KR',sans-seri
       <div class="sh"><span>🏆</span><span class="st">추천 PT 패키지</span></div>
       <div class="sb">
         <div id="r-pkgrec" style="margin-bottom:12px;padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:12px;color:var(--gold2);line-height:1.6;"></div>
-        <div class="pg">
-          <div class="pkc"><div class="pkb">기본형</div><div class="pkn">PT 10회</div><div class="pkv">55<span style="font-size:12px;">만</span></div><div class="pkp">헬스 2개월·락카포함</div></div>
-          <div class="pkc"><div class="pkb">기본형</div><div class="pkn">PT 20회</div><div class="pkv">99<span style="font-size:12px;">만</span></div><div class="pkp">헬스 4개월·락카포함</div></div>
-          <div class="pkc ft"><div class="pkb">추천 ⭐</div><div class="pkn">PT 30회</div><div class="pkv">132<span style="font-size:12px;">만</span></div><div class="pkp">헬스 6개월·락카포함</div></div>
-          <div class="pkc"><div class="pkb">기본형</div><div class="pkn">PT 50회</div><div class="pkv">220<span style="font-size:12px;">만</span></div><div class="pkp">헬스 12개월·락카포함</div></div>
-        </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;margin-top:10px;">* 부가세 포함 · 당일 등록 시 PT 1회 추가 증정</div>
+        <div class="pg" id="r-pkggrid"></div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;margin-top:10px;" id="r-pkgnote">* 부가세 포함</div>
       </div>
     </div>
 
@@ -350,6 +345,27 @@ body{background:var(--dark);color:var(--tx);font-family:'Noto Sans KR',sans-seri
         </div>
       </div>
     </div>
+    <div class="card">
+      <div class="ch">🏆 추천 PT 패키지 (선택)</div>
+      <div class="cb">
+        <div class="g2">
+          <div class="fg"><label>결제 유형</label>
+            <select class="fi" id="f-pkgtype" onchange="onPkgType()">
+              <option value="">추천 안 함 (자동 추천)</option>
+              <option value="type1">기본형</option>
+              <option value="type2">당일등록 PT 추가증정</option>
+              <option value="type3">해피아워 타임할인</option>
+            </select>
+          </div>
+          <div class="fg"><label>추천 횟수</label>
+            <select class="fi" id="f-pkgpick" disabled>
+              <option value="">유형을 먼저 선택하세요</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px;line-height:1.5;">선택하면 고객 리포트에서 해당 패키지가 ⭐ 추천으로 강조됩니다. 비워두면 자동 추천이 표시돼요.</div>
+      </div>
+    </div>
     <button class="btn-gold" onclick="saveRpt()">✨ 리포트 저장 및 생성</button>
     <div class="card" style="margin-top:8px;">
       <div class="ch">📋 저장된 리포트 목록</div>
@@ -364,6 +380,18 @@ const SB='https://rxqvprqzipqbolvuxsmr.supabase.co';
 const SK='sb_publishable_yBWOsQFDQ9d5wL7ifNJ9Zw_Zr1BR5PN';
 const SH={'apikey':SK};
 const TW={'권용재':'kwon88!','손밝음':'son88!'};
+const PKGS={
+  type1:{label:'기본형',note:'* 부가세 포함',items:[{s:10,p:55,m:2},{s:20,p:99,m:4},{s:30,p:132,m:6},{s:50,p:220,m:12}]},
+  type2:{label:'당일등록 추가증정',note:'* 부가세 포함 · 당일 등록 시 PT 추가 증정',items:[{s:11,p:55,m:2},{s:22,p:99,m:4},{s:33,p:132,m:6},{s:55,p:220,m:12}]},
+  type3:{label:'해피아워 할인',note:'* 부가세 포함 · 해피아워 타임 할인가',items:[{s:10,p:44,m:2},{s:20,p:88,m:4},{s:33,p:132,m:6},{s:55,p:220,m:12}]}
+};
+function onPkgType(){
+  const t=document.getElementById('f-pkgtype').value;
+  const sel=document.getElementById('f-pkgpick');
+  if(!t||!PKGS[t]){sel.innerHTML='<option value="">유형을 먼저 선택하세요</option>';sel.disabled=true;return;}
+  sel.disabled=false;
+  sel.innerHTML='<option value="">선택 안 함</option>'+PKGS[t].items.map(it=>`<option value="${it.s}">PT ${it.s}회 · ${it.p}만원 · 헬스 ${it.m}개월</option>`).join('');
+}
 let curT='', pinBuf='';
 
 async function sbQ(t,q){
@@ -505,7 +533,8 @@ async function saveRpt(){
     pain_area:document.getElementById('f-pain')?document.getElementById('f-pain').value:'',
     surgery:document.getElementById('f-surgery')?document.getElementById('f-surgery').value:'',
     trainer_name:curT,
-    memo:document.getElementById('f-memo').value||''
+    memo:document.getElementById('f-memo').value||'',
+    pkg_rec:(document.getElementById('f-pkgtype').value&&document.getElementById('f-pkgpick').value)?(document.getElementById('f-pkgtype').value+':'+document.getElementById('f-pkgpick').value):''
   };
   try{
     const res=await sbI('consultations',d);
@@ -636,8 +665,22 @@ function renderRpt(d){
       <div><div class="pn">${p.n}</div><div class="pp">${p.p}</div></div>
     </div>`).join('');
 
-  // 패키지 추천
-  document.getElementById('r-pkgrec').innerHTML='⭐ <strong>추천:</strong> '+(n.bmi>=30?'PT 30회 또는 50회 장기 패키지를 권장합니다.':n.bmi>=25?'PT 30회 또는 50회 패키지로 꾸준히 관리하시길 권장합니다.':'PT 20회 또는 30회로 시작해 보세요.');
+  // 패키지 추천 (트레이너 직접 추천 우선)
+  let pkgType='type1',recS=null;
+  if(d.pkg_rec&&d.pkg_rec.indexOf(':')>-1){const ps=d.pkg_rec.split(':');if(PKGS[ps[0]]){pkgType=ps[0];recS=parseInt(ps[1]);}}
+  const pk=PKGS[pkgType]||PKGS.type1;
+  document.getElementById('r-pkggrid').innerHTML=pk.items.map(it=>{
+    const ft=(recS===it.s);
+    return `<div class="pkc${ft?' ft':''}"><div class="pkb">${ft?'추천 ⭐':pk.label}</div><div class="pkn">PT ${it.s}회</div><div class="pkv">${it.p}<span style="font-size:12px;">만</span></div><div class="pkp">헬스 ${it.m}개월·락카포함</div></div>`;
+  }).join('');
+  document.getElementById('r-pkgnote').textContent=pk.note;
+  const recEl=document.getElementById('r-pkgrec');
+  if(recS!==null){
+    const it=pk.items.find(x=>x.s===recS)||pk.items[0];
+    recEl.innerHTML='⭐ <strong>'+(d.trainer_name||'트레이너')+' 트레이너 추천:</strong> '+pk.label+' · PT '+it.s+'회 ('+it.p+'만원 · 헬스 '+it.m+'개월·락카포함)';
+  }else{
+    recEl.innerHTML='⭐ <strong>추천:</strong> '+(n.bmi>=30?'PT 30회 또는 50회 장기 패키지를 권장합니다.':n.bmi>=25?'PT 30회 또는 50회 패키지로 꾸준히 관리하시길 권장합니다.':'PT 20회 또는 30회로 시작해 보세요.');
+  }
 
   // 트레이너 한마디
   if(d.memo){
