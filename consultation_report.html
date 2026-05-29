@@ -361,8 +361,8 @@ body{background:var(--dark);color:var(--tx);font-family:'Noto Sans KR',sans-seri
 
 <script>
 const SB='https://rxqvprqzipqbolvuxsmr.supabase.co';
-const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4cXZwcnF6aXBxYm9sdnVzbXIiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc0ODQ5MTc0MCwiZXhwIjoyMDY0MDY3NzQwfQ.tD-bkTh7dRBbHuKqsUZTBbKE22EWnVJbQicosuFp74M';
-const SH={'apikey':SK,'Authorization':'Bearer '+SK};
+const SK='sb_publishable_yBWOsQFDQ9d5wL7ifNJ9Zw_Zr1BR5PN';
+const SH={'apikey':SK};
 const TW={'권용재':'kwon88!','손밝음':'son88!'};
 let curT='', pinBuf='';
 
@@ -376,8 +376,19 @@ async function sbI(t,d){
     headers:{...SH,'Content-Type':'application/json','Prefer':'return=representation'},
     body:JSON.stringify(d)
   });
-  const j=await r.json();
-  if(!r.ok) throw new Error(j.message||j.error||'저장 실패 ('+r.status+')');
+  let j;
+  try{ j=await r.json(); }catch(_){ j={}; }
+  if(!r.ok){
+    console.error('Supabase 응답:',r.status,j);
+    const parts=[
+      'HTTP '+r.status,
+      j.message?('message: '+j.message):'',
+      j.code?('code: '+j.code):'',
+      j.details?('details: '+j.details):'',
+      j.hint?('hint: '+j.hint):''
+    ].filter(Boolean);
+    throw new Error(parts.join('\n'));
+  }
   return j;
 }
 async function sbD(t,q){
@@ -504,7 +515,11 @@ async function saveRpt(){
     await loadList();
     renderRpt(d);
     goPage('pg2');
-  }catch(e){toast('저장 실패: '+e.message);}
+  }catch(e){
+    console.error('저장 실패 상세:',e);
+    toast('저장 실패: '+e.message);
+    alert('저장 실패\n\n'+e.message+'\n\n(이 메시지를 캡처해서 보여주세요)');
+  }
 }
 
 // ── 목록 로드 ──
