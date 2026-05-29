@@ -637,7 +637,7 @@ function renderRpt(d){
     </div>`).join('');
 
   // 패키지 추천
-  document.getElementById('r-pkgrec').innerHTML='⭐ <strong>추천:</strong> '+(n.bmi>=30?'PT 30회 또는 50회 장기 패키지를 권장합니다.':n.bmi>=25?'PT 20회 또는 30회 패키지를 권장합니다.':'PT 10회 또는 20회로 시작해 보세요.');
+  document.getElementById('r-pkgrec').innerHTML='⭐ <strong>추천:</strong> '+(n.bmi>=30?'PT 30회 또는 50회 장기 패키지를 권장합니다.':n.bmi>=25?'PT 30회 또는 50회 패키지로 꾸준히 관리하시길 권장합니다.':'PT 20회 또는 30회로 시작해 보세요.');
 
   // 트레이너 한마디
   if(d.memo){
